@@ -10,7 +10,7 @@ const LoginPage = () => {
 	const handleGoogleClick = async () => {
 		try {
 			await signIn('google', {
-				callbackUrl: '/dashboard',
+				callbackUrl: '/dashboard', // Redirect to dashboard after successful login
 			})
 		} catch (error) {
 			console.error('Error signing in with Google:', error)
