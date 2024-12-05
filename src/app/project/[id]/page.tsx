@@ -35,7 +35,7 @@ const scriptFormSchema = z.object({
 	tone: z.string().min(1, "Please select a tone"),
 	mainMessage: z.string().min(10, "Main message must be at least 10 characters"),
 	keyPoints: z.string().min(20, "Please provide key points (at least 20 characters)"),
-	callToAction: z.string().optional()
+	duration: z.string().min(1, "Please select duration"),
 });
 
 type ScriptFormValues = z.infer<typeof scriptFormSchema>;
@@ -46,6 +46,9 @@ const VideoScriptGenerator = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedProject, setSelectedProject] = useState<{ name: string; description: string } | null>(null);
 	const [newProject, setNewProject] = useState(false);
+	const [scriptLoaded, setScriptLoaded] = useState(false);
+
+	console.log(newProject);
 
 	const form = useForm<ScriptFormValues>({
 		resolver: zodResolver(scriptFormSchema),
@@ -55,7 +58,7 @@ const VideoScriptGenerator = () => {
 			tone: "",
 			mainMessage: "",
 			keyPoints: "",
-			callToAction: ""
+			duration: ""
 		}
 	});
 
@@ -67,7 +70,12 @@ const VideoScriptGenerator = () => {
 				...data
 			});
 
-			setGeneratedScript(response.data.script);
+			console.log("response from apis", response.data)
+
+			setGeneratedScript(response.data.result);
+
+			setScriptLoaded(true);
+
 		} catch (error) {
 			console.error("Script generation error:", error);
 			form.setError("root", {
@@ -124,142 +132,156 @@ const VideoScriptGenerator = () => {
 					</div>
 				</div>
 			) : (
-			<Card className="w-full max-w-3xl mx-auto">
-				{selectedProject && (
-					<CardHeader>
-						<CardTitle>{selectedProject.name} - Let's generate script</CardTitle>
-						<p className="text-muted-foreground">{selectedProject.description}</p>
-					</CardHeader>
-				)}
-				<CardContent>
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-							<div className="grid md:grid-cols-2 gap-4">
-								<FormField
-									control={form.control}
-									name="videoType"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Video Type</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue placeholder="Select video type" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{['Explainer', 'Tutorial', 'Testimonial', 'Product Demo', 'Marketing'].map(type => (
-														<SelectItem key={type} value={type}>{type}</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="targetAudience"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Target Audience</FormLabel>
-											<FormControl>
-												<Input placeholder="e.g., Tech professionals, Startup founders" {...field} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
-
-							<div className="grid md:grid-cols-2 gap-4">
-								<FormField
-									control={form.control}
-									name="tone"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Tone</FormLabel>
-											<Select onValueChange={field.onChange} defaultValue={field.value}>
-												<FormControl>
-													<SelectTrigger>
-														<SelectValue placeholder="Select tone" />
-													</SelectTrigger>
-												</FormControl>
-												<SelectContent>
-													{['Professional', 'Conversational', 'Energetic', 'Empathetic', 'Technical'].map(tone => (
-														<SelectItem key={tone} value={tone}>{tone}</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-
-								<FormField
-									control={form.control}
-									name="callToAction"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel>Call to Action (Optional)</FormLabel>
-											<FormControl>
-												<Input placeholder="What do you want viewers to do?" {...field} />
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
-
-							<FormField
-								control={form.control}
-								name="mainMessage"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Main Message</FormLabel>
-										<FormControl>
-											<Textarea
-												placeholder="Briefly describe the core message of your video"
-												className="min-h-[100px]"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<FormField
-								control={form.control}
-								name="keyPoints"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel>Key Points</FormLabel>
-										<FormControl>
-											<Textarea
-												placeholder="List the main points you want to cover (one per line)"
-												className="min-h-[120px]"
-												{...field}
-											/>
-										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							<Button type="submit" className="w-full">Generate Script</Button>
-						</form>
-					</Form>
-
-					{generatedScript && (
-						<div className="mt-6 p-4 bg-gray-100 rounded-lg">
-							<h3 className="text-lg font-semibold mb-4">Generated Script</h3>
-							<pre className="whitespace-pre-wrap">{generatedScript}</pre>
-						</div>
+				<Card className="w-full max-w-3xl mx-auto">
+					{selectedProject && (
+						<CardHeader>
+							<CardTitle>{selectedProject.name} - Let&apos;s generate script</CardTitle>
+							<p className="text-muted-foreground">{selectedProject.description}</p>
+						</CardHeader>
 					)}
-				</CardContent>
-			</Card>
+					<CardContent>
+
+						{scriptLoaded ? (
+
+							<div>
+								{generatedScript}
+							</div>
+
+						) : (
+							<Form {...form}>
+								<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+									<div className="grid md:grid-cols-2 gap-4">
+										<FormField
+											control={form.control}
+											name="videoType"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Video Type</FormLabel>
+													<Select onValueChange={field.onChange} defaultValue={field.value}>
+														<FormControl>
+															<SelectTrigger>
+																<SelectValue placeholder="Select video type" />
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															{['Explainer', 'Tutorial', 'Testimonial', 'Product Demo', 'Marketing'].map(type => (
+																<SelectItem key={type} value={type}>{type}</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="targetAudience"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Target Audience</FormLabel>
+													<FormControl>
+														<Input placeholder="e.g., Tech professionals, Startup founders" {...field} />
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
+
+									<div className="grid md:grid-cols-2 gap-4">
+										<FormField
+											control={form.control}
+											name="tone"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Tone</FormLabel>
+													<Select onValueChange={field.onChange} defaultValue={field.value}>
+														<FormControl>
+															<SelectTrigger>
+																<SelectValue placeholder="Select tone" />
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															{['Professional', 'Conversational', 'Energetic', 'Empathetic', 'Technical'].map(tone => (
+																<SelectItem key={tone} value={tone}>{tone}</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="duration"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Duration</FormLabel>
+													<Select onValueChange={field.onChange} defaultValue={field.value}>
+														<FormControl>
+															<SelectTrigger>
+																<SelectValue placeholder="Select duration" />
+															</SelectTrigger>
+														</FormControl>
+														<SelectContent>
+															{['1 minutes', '2 minutes', '5 minutes', '8 minutes', '10 minutes'].map(duration => (
+																<SelectItem key={duration} value={duration}>{duration}</SelectItem>
+															))}
+														</SelectContent>
+													</Select>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
+
+									<FormField
+										control={form.control}
+										name="mainMessage"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Main Message</FormLabel>
+												<FormControl>
+													<Textarea
+														placeholder="Briefly describe the core message of your video"
+														className="min-h-[100px]"
+														{...field}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+
+									<FormField
+										control={form.control}
+										name="keyPoints"
+										render={({ field }) => (
+											<FormItem>
+												<FormLabel>Key Points</FormLabel>
+												<FormControl>
+													<Textarea
+														placeholder="List the main points you want to cover (one per line)"
+														className="min-h-[120px]"
+														{...field}
+													/>
+												</FormControl>
+												<FormMessage />
+											</FormItem>
+										)}
+									/>
+
+									<Button type="submit" className="w-full">Generate Script</Button>
+								</form>
+							</Form>
+
+						)}
+
+
+					</CardContent>
+				</Card>
 			)}
 		</div>
 	);
