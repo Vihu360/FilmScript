@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import React from 'react'
+import Link from 'next/link'
 
 const HomeHeader = () => {
 	return (
@@ -18,7 +19,9 @@ const HomeHeader = () => {
 				<button>Blog</button>
 				</div>
 
+				<Link href={'/login'}>
 				<Button className='bg-white text-black font-semibold hover:bg-gray-200 rounded-full p-4'>Log in</Button>
+				</Link>
 
 			</div>
 

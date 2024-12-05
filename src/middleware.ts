@@ -3,11 +3,18 @@ import { auth } from "./auth";
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
-  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
+	const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
+	const loginurl = req.nextUrl.pathname.startsWith("/login");
+
+	if (isLoggedIn && loginurl) {
+		return Response.redirect(new URL("/dashboard", req.url));
+	};
+
 
   if (isOnDashboard && !isLoggedIn) {
     return Response.redirect(new URL("/login", req.url));
-  }
+	};
+
 
   return NextResponse.next();
 });
